@@ -17,9 +17,14 @@ class HangmanLauncher
     if game_type == '1'
       new_game
     else
-      puts 'Enter path to saved game (e.g., \'./saved_games/example.json\'): '
-      saved_game_file = gets.chomp
-      load_game(saved_game_file)
+      if File.exist?('saved_games')
+        print_saved_games
+        saved_game_file = gets.chomp
+        load_game(saved_game_file)
+      else
+        puts 'Could not find \'/saved_games/\' folder. Starting new game!'
+        new_game
+      end
     end
   end
 
@@ -33,6 +38,7 @@ class HangmanLauncher
 
       puts ''
       puts 'Invalid input - Please enter \'1\' (new game) or \'2\' (load game)'
+      puts ''
     end
   end
 
@@ -50,14 +56,24 @@ class HangmanLauncher
     dictionary
   end
 
+  def print_saved_games
+    puts 'Select one of the saved games to play (e.g., enter \'saved_games/example.json\'):'
+    puts Dir.glob("saved_games/*.{json, JSON}").join(",\n")
+    puts ''
+  end
+
   def read_saved_game(file)
     File.open(file, 'r').read
   end
 
   def load_game(file)
-    string = read_saved_game(file)
-    HangmanGame.from_json(string).play
+    if File.exist?(file)
+      string = read_saved_game(file)
+      HangmanGame.from_json(string).play
+    else
+      puts ''
+      puts 'Could not find valid file. Starting new game!'
+      new_game
+    end
   end
 end
-
-HangmanLauncher.new.play
