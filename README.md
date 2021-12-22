@@ -18,6 +18,8 @@ $ ruby example_game.rb
 
 Further instructions provided within the command line.
 
+Easiest way to play is live on replit: https://replit.com/@ayrtonomics/odin-hangman#.replit 
+
 ## Key Topics
 
 This project was part of the 'Files and Serialization' section of the course.
