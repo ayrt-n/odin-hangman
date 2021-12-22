@@ -28,15 +28,6 @@ class HangmanGame
     )
   end
 
-  def to_json
-    JSON.dump ({
-      word: @word,
-      guess: @guess,
-      remaining_incorrect_guesses: @remaining_incorrect_guesses,
-      remaining_letters: @remaining_letters
-    })
-  end
-
   def play
     hangman_game
     puts ''
@@ -52,6 +43,15 @@ class HangmanGame
   end
 
   private
+
+  def to_json
+    JSON.dump ({
+      word: @word,
+      guess: @guess,
+      remaining_incorrect_guesses: @remaining_incorrect_guesses,
+      remaining_letters: @remaining_letters
+    })
+  end
 
   def save_game
     dirname = 'saved_games'
