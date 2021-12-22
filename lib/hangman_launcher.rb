@@ -16,15 +16,13 @@ class HangmanLauncher
 
     if game_type == '1'
       new_game
+    elsif File.exist?('saved_games')
+      print_saved_games
+      saved_game_file = gets.chomp
+      load_game(saved_game_file)
     else
-      if File.exist?('saved_games')
-        print_saved_games
-        saved_game_file = gets.chomp
-        load_game(saved_game_file)
-      else
-        puts 'Could not find \'/saved_games/\' folder. Starting new game!'
-        new_game
-      end
+      puts 'Could not find \'/saved_games/\' folder. Starting new game!'
+      new_game
     end
   end
 
