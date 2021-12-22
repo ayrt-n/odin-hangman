@@ -1,26 +1,75 @@
-# Play hangman game
-class HangmanGame
-  attr_reader :word, :guess
-  attr_accessor :remaining_incorrect_guesses
+# frozen_string_literal: true
 
-  def initialize(word)
+require 'json'
+
+# Contains logic required to play game of hangman
+class HangmanGame
+  attr_reader :word, :guess, :remaining_incorrect_guesses
+
+  def initialize(
+    word,
+    guess = '_' * word.length,
+    remaining_incorrect_guesses = 6,
+    remaining_letters = ('A'..'Z').to_a
+  )
     @word = word
-    @guess = '_' * word.length
-    @remaining_incorrect_guesses = 6
-    @remaining_letters = ('A'..'Z').to_a
+    @guess = guess
+    @remaining_incorrect_guesses = remaining_incorrect_guesses
+    @remaining_letters = remaining_letters
+  end
+
+  def self.from_json(file)
+    game_state = JSON.load(file)
+    self.new(
+      game_state['word'],
+      game_state['guess'],
+      game_state['remaining_incorrect_guesses'],
+      game_state['remaining_letters']
+    )
+  end
+
+  def to_json
+    JSON.dump ({
+      word: @word,
+      guess: @guess,
+      remaining_incorrect_guesses: @remaining_incorrect_guesses,
+      remaining_letters: @remaining_letters
+    })
   end
 
   def play
     hangman_game
-    print_full_game_view
-    puts win? ? 'Congratulations, you won!' : "Game over! The word was #{word}."
+    puts ''
+    if win? 
+      puts 'Congratulations, you won!' 
+    elsif lose? 
+      puts "Game over! The word was #{word}."
+    else
+      save_game
+      puts 'Game saved. Thank you!'
+    end
     puts ''
   end
 
+  private
+
+  def save_game
+    dirname = 'saved_games'
+    print 'Name: '
+    filename = gets.chomp
+    puts ''
+    Dir.mkdir(dirname) unless File.exist?(dirname)
+    File.open("#{dirname}/#{filename}.json", 'w') { |f| f.write(to_json) }
+  end
+
   def hangman_game
-    until win? || lose?
+    loop do
       print_full_game_view
+      break if win? || lose?
+
       user_guess = prompt_user_guess
+      break if user_guess == 'save'
+
       update_current_guess(user_guess)
       update_remaining_letters(user_guess)
       @remaining_incorrect_guesses -= 1 unless word.downcase.include?(user_guess.downcase)
@@ -40,8 +89,16 @@ class HangmanGame
   end
 
   def prompt_user_guess
-    print 'Enter letter: '
-    gets.chomp
+    loop do
+      print 'Enter letter (type \'save\' to save game and quit): '
+      user_guess = gets.chomp
+
+      return user_guess if @remaining_letters.include?(user_guess.upcase) || user_guess == 'save'
+
+      puts ''
+      puts 'Invalid input - Please enter one of the remaining letters or \'save\''
+      puts ''
+    end
   end
 
   def update_current_guess(char)
@@ -54,9 +111,7 @@ class HangmanGame
     puts ''
     print_remaining_guesses
     puts ''
-    puts ''
     print_hangman
-    puts ''
     puts ''
     print_current_guess
     puts ''
@@ -70,6 +125,10 @@ class HangmanGame
 
   def print_remaining_letters
     puts "Remaining letters: #{@remaining_letters.join(' ')}"
+  end
+
+  def print_remaining_guesses
+    puts "Remaining incorrect guesses: #{remaining_incorrect_guesses}"
   end
 
   def print_hangman
@@ -126,21 +185,4 @@ class HangmanGame
       " "
     end
   end
-
-  def print_remaining_guesses
-    puts "Remaining incorrect guesses: #{remaining_incorrect_guesses}"
-  end
 end
-
-dictionary = []
-File.open('5desk.txt').readlines.each do |line|
-  if line.chomp.length > 4 && line.chomp.length < 13
-    dictionary << line.chomp
-  end
-end
-
-random_word = dictionary.sample
-
-game = HangmanGame.new(random_word)
-
-game.play
